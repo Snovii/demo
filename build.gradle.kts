@@ -29,6 +29,12 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	implementation("nl.martijndwars:web-push:5.1.2")
+	implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+	implementation("org.apache.httpcomponents:httpclient:4.5.14")
+
+
+
 }
 
 kotlin {
