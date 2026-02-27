@@ -1,25 +1,60 @@
-self.addEventListener('push', function(event) {
+console.log("SW file parsed");
 
-    console.log("Push event received");
+self.addEventListener('install', event => {
+    console.log("SW installed");
+    self.skipWaiting();
+});
 
-    let title = "Default Title";
-    let message = "Default Message";
+self.addEventListener('activate', event => {
+    console.log("SW activated");
+});
 
-    if (event.data) {
-        try {
-            const data = event.data.json();
-            title = data.title;
-            message = data.message;
-        } catch (e) {
-            console.log("Payload was not JSON, using raw text");
-            message = event.data.text();
-        }
+package com.example.demo.service
+
+import com.example.demo.model.PushSubscription
+import jakarta.annotation.PostConstruct
+import nl.martijndwars.webpush.Notification
+import nl.martijndwars.webpush.PushService
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
+import java.security.Security
+
+
+@Service
+class WebPushService(
+    @Value("\${push.vapid.public-key}")
+    private val publicKey: String,
+
+    @Value("\${push.vapid.private-key}")
+    private val privateKey: String
+) {
+
+    private lateinit var pushService: PushService
+
+    @PostConstruct
+    fun init() {
+        Security.addProvider(BouncyCastleProvider())
+        pushService = PushService()
+            .setPublicKey(publicKey)
+            .setPrivateKey(privateKey)
+            .setSubject("mailto:test@example.com")
     }
 
-    event.waitUntil(
-        self.registration.showNotification(title, {
-            body: message,
-            icon: "https://via.placeholder.com/128"
-        })
-    );
-});
+
+    fun sendNotification(subscription: PushSubscription, payload: String) {
+        val notification = Notification(
+            subscription.endpoint,
+            subscription.keys.p256dh,
+            subscription.keys.auth,
+            payload
+        )
+
+
+        pushService.send(notification)
+    }
+
+    fun getPublicKey(): String {
+        return publicKey
+    }
+}

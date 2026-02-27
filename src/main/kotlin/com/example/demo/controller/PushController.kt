@@ -1,12 +1,15 @@
 package com.example.demo.controller
 
-import com.example.demo.model.PushSubscription
 import com.example.demo.service.WebPushService
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/push")
 class PushController(
+
     private val webPushService: WebPushService
 ) {
 
@@ -16,30 +19,28 @@ class PushController(
     }
 
     @PostMapping("/send")
-    fun sendPush(@RequestBody subscription: PushSubscription) {
+    fun sendPush(): String {
+
+        println("🚀 Send endpoint hit")
+
+        val subscriptions = webPushService.getAllSubscriptions()
+
+        if (subscriptions.isEmpty()) {
+            println("❌ No subscriptions found")
+            return "No subscriptions found"
+        }
+
         val payload = """
             {
                 "title": "Hello from Kotlin",
                 "message": "Your push system works!"
             }
-            
-
         """.trimIndent()
-        try {
-            println("Sending push now")
 
-            webPushService.sendNotification(
-                subscription.endpoint,
-                subscription.keys.p256dh,
-                subscription.keys.auth,
-                payload
-            )
-
-            println("Push sent successfully")
-
-        } catch (e: Exception) {
-            println("Push failed")
-            e.printStackTrace()
+        subscriptions.forEach {
+            webPushService.sendNotification(it, payload)
         }
+
+        return "Push triggered for ${subscriptions.size} subscription(s)"
     }
 }

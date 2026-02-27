@@ -1,5 +1,7 @@
 package com.example.demo.service
 
+import com.example.demo.model.PushSubscription
+import com.example.demo.repository.PushSubscriptionRepository
 import jakarta.annotation.PostConstruct
 import nl.martijndwars.webpush.Notification
 import nl.martijndwars.webpush.PushService
@@ -10,35 +12,64 @@ import java.security.Security
 
 @Service
 class WebPushService(
+    private val pushSubscriptionRepository: PushSubscriptionRepository
+) {
+
     @Value("\${push.vapid.public-key}")
-    private val publicKey: String,
+    private lateinit var publicKey: String
 
     @Value("\${push.vapid.private-key}")
-    private val privateKey: String
-) {
+    private lateinit var privateKey: String
 
     private lateinit var pushService: PushService
 
     @PostConstruct
     fun init() {
         Security.addProvider(BouncyCastleProvider())
-        pushService = PushService()
-            .setPublicKey(publicKey)
-            .setPrivateKey(privateKey)
-            .setSubject("mailto:test@example.com")
-    }
 
-    fun sendNotification(
-        endpoint: String,
-        p256dh: String,
-        auth: String,
-        payload: String
-    ) {
-        val notification = Notification(endpoint, p256dh, auth, payload)
-        pushService.send(notification)
+        pushService = PushService()
+        pushService.setPublicKey(publicKey)
+        pushService.setPrivateKey(privateKey)
+        pushService.setSubject("mailto:test@example.com")
+
+        println("===== VAPID KEYS LOADED =====")
+        println("Public Key: $publicKey")
+        println("Private Key: $privateKey")
+        println("=============================")
     }
 
     fun getPublicKey(): String {
         return publicKey
+    }
+
+    fun getAllSubscriptions(): List<PushSubscription> {
+        return pushSubscriptionRepository.findAll()
+    }
+
+    fun sendNotification(subscription: PushSubscription, payload: String) {
+        try {
+            println("🔥 sendNotification() called")
+            println("Endpoint: ${subscription.endpoint}")
+
+            val notification = Notification(
+                subscription.endpoint,
+                subscription.keys.p256dh,
+                subscription.keys.auth,
+                payload
+            )
+
+            val response = pushService.send(notification)
+
+            println("========== FCM RESPONSE ==========")
+            println("Status Code: ${response.statusLine.statusCode}")
+            println("Reason: ${response.statusLine.reasonPhrase}")
+            println("==================================")
+            println("p256dh: ${subscription.keys.p256dh}")
+            println("auth: ${subscription.keys.auth}")
+
+        } catch (e: Exception) {
+            println("❌ ERROR SENDING PUSH")
+            e.printStackTrace()
+        }
     }
 }
