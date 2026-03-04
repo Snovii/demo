@@ -33,7 +33,7 @@ class NotificationController(
         val payload = """
             {
                     "title": "Pop-Up",
-                    "message": "Message "
+                    "message": "Message"
             }
         """.trimIndent()
 
