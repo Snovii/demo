@@ -52,11 +52,10 @@ class WebPushService(
                 subscription.endpoint,
                 subscription.keys.p256dh,
                 subscription.keys.auth,
-                payload,
-                Encoding.AES128GCM
+                payload
             )
 
-            val response = pushService.send(notification)
+            val response = pushService.send(notification, Encoding.AES128GCM)
 
             println("========== FCM RESPONSE ==========")
             println("Status Code: ${response.statusLine.statusCode}")
