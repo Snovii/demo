@@ -9,52 +9,30 @@ self.addEventListener('activate', event => {
     console.log("SW activated");
 });
 
-package com.example.demo.service
+self.addEventListener('push', function(event) {
 
-import com.example.demo.model.PushSubscription
-import jakarta.annotation.PostConstruct
-import nl.martijndwars.webpush.Notification
-import nl.martijndwars.webpush.PushService
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
-import java.security.Security
+    console.log("Push event received");
 
+    let title = "Default Title";
+    let message = "Default Message";
 
-@Service
-class WebPushService(
-    @Value("\${push.vapid.public-key}")
-    private val publicKey: String,
+    if (event.data) {
+        const data = event.data.json();
+        console.log("Push payload:", data);
 
-    @Value("\${push.vapid.private-key}")
-    private val privateKey: String
-) {
-
-    private lateinit var pushService: PushService
-
-    @PostConstruct
-    fun init() {
-        Security.addProvider(BouncyCastleProvider())
-        pushService = PushService()
-            .setPublicKey(publicKey)
-            .setPrivateKey(privateKey)
-            .setSubject("mailto:test@example.com")
+        if (data.notification) {
+            title = data.notification.title;
+            message = data.notification.body;
+        } else {
+            title = data.title;
+            message = data.message;
+        }
     }
 
-
-    fun sendNotification(subscription: PushSubscription, payload: String) {
-        val notification = Notification(
-            subscription.endpoint,
-            subscription.keys.p256dh,
-            subscription.keys.auth,
-            payload
-        )
-
-
-        pushService.send(notification)
-    }
-
-    fun getPublicKey(): String {
-        return publicKey
-    }
-}
+    event.waitUntil(
+        self.registration.showNotification(title, {
+            body: message || "No message",
+            icon: "https://via.placeholder.com/128"
+        })
+    );
+});

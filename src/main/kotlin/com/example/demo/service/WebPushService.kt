@@ -32,10 +32,6 @@ class WebPushService(
         pushService.setPrivateKey(privateKey)
         pushService.setSubject("mailto:test@example.com")
 
-        println("===== VAPID KEYS LOADED =====")
-        println("Public Key: $publicKey")
-        println("Private Key: $privateKey")
-        println("=============================")
     }
 
     fun getPublicKey(): String {
