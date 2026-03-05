@@ -59,6 +59,8 @@ class WebPushService(
             println("========== FCM RESPONSE ==========")
             println("Status Code: ${response.statusLine.statusCode}")
             println("Reason: ${response.statusLine.reasonPhrase}")
+            val responseBody = response.entity?.content?.bufferedReader()?.readText()
+            println("Body: $responseBody")
             println("==================================")
             println("p256dh: ${subscription.keys.p256dh}")
             println("auth: ${subscription.keys.auth}")
