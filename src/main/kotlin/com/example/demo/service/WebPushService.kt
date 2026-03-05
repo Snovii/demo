@@ -3,6 +3,7 @@ package com.example.demo.service
 import com.example.demo.model.PushSubscription
 import com.example.demo.repository.PushSubscriptionRepository
 import jakarta.annotation.PostConstruct
+import nl.martijndwars.webpush.Encoding
 import nl.martijndwars.webpush.Notification
 import nl.martijndwars.webpush.PushService
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -51,7 +52,8 @@ class WebPushService(
                 subscription.endpoint,
                 subscription.keys.p256dh,
                 subscription.keys.auth,
-                payload
+                payload,
+                Encoding.AES128GCM
             )
 
             val response = pushService.send(notification)
